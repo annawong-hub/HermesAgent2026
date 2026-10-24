@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 學習遊戲｜Johnny Education Centre</title>
+<meta name="description" content="Johnny Education Centre 學習遊戲：英文生字認字同數學加減法，邊玩邊學。">
+<style>
+:root{
+ --ink:#182448;--ink-2:#44506b;--muted:#6b7690;--bg:#fff8ef;--line:#f0e4d0;
+ --blue:#2f6bff;--red:#ff5a5f;--green:#2fbf71;--yellow:#ffcf33;--purple:#9b6dff;--pink:#ff7eb6;
+ --r:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:"Comic Sans MS","Chalkboard SE","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:16px;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:
+ radial-gradient(600px 300px at 12% 8%, #eef4ff 0%, transparent 60%),
+ radial-gradient(560px 300px at 88% 14%, #fff2fb 0%, transparent 60%),
+ radial-gradient(520px 320px at 50% 100%, #fffbe6 0%, transparent 55%)}
+a{color:var(--blue)}
+.wrap{max-width:900px;margin:0 auto;padding:14px}
+button:focus-visible,a:focus-visible{outline:4px solid var(--yellow);outline-offset:2px;border-radius:12px}
+/* top bar */
+.topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.9);backdrop-filter:blur(6px);border-bottom:3px dashed var(--line)}
+.top{display:flex;align-items:center;gap:10px;padding:10px}
+.mascot{font-size:30px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.1))}
+.top .title{font-weight:800;font-size:15px;line-height:1.2}
+.top .title small{display:block;color:var(--muted);font-weight:600;font-size:10.5px}
+.stars{margin-left:auto;font-size:18px;background:#fff;border:2px dashed var(--line);border-radius:999px;padding:5px 12px;font-weight:800}
+.stars span{color:#c9c2b4}.stars .on{color:var(--yellow)}
+.homes{display:block;text-align:center;padding:8px 0 4px;font-size:13px;font-weight:700}
+.homes a{color:var(--ink-2);text-decoration:none;background:#fff;border:2px dashed var(--line);border-radius:999px;padding:5px 14px;font-size:12.5px}
+.homes a:hover{border-color:var(--blue);color:var(--blue)}
+/* screens */
+.screen{padding:20px 4px 40px}
+.screen[hidden]{display:none}
+.card{background:#fff;border-radius:var(--r);box-shadow:0 6px 24px -12px rgba(24,36,72,.25),0 2px 4px rgba(24,36,72,.06);padding:24px}
+/* mode select */
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:560px){.pick{grid-template-columns:1fr}}
+.modebtn{cursor:pointer;border:0;font-family:inherit;text-align:left;padding:24px;border-radius:20px;color:#fff;position:relative;overflow:hidden;transition:transform .12s}
+.modebtn:active{transform:scale(.98)}
+.modebtn .big{font-size:44px}
+.modebtn h2{font-size:20px;margin:8px 0 4px}
+.modebtn p{font-size:13px;opacity:.92;font-weight:600}
+.m-english{background:linear-gradient(140deg,#4f8bff,#2f6bff)}
+.m-math{background:linear-gradient(140deg,#2fbf71,#20a062)}
+.modebtn .go{position:absolute;right:18px;bottom:18px;font-size:30px;opacity:.6}
+.hi{text-align:center;font-size:26px;font-weight:800;margin-bottom:4px}
+.hi-sub{text-align:center;color:var(--ink-2);font-size:14px;margin-bottom:20px}
+/* quiz */
+.qhead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.qhead .tag{font-size:13px;font-weight:800;background:var(--blue-soft,#e8efff);color:var(--blue);padding:4px 12px;border-radius:999px}
+.qhead .tag.math{background:#e5f5e8;color:var(--green)}
+.score{margin-left:auto;font-size:13px;font-weight:800;color:var(--ink-2);background:#fff8ef;border:2px dashed var(--line);border-radius:999px;padding:4px 12px}
+.ring{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:4px}
+.prompt{display:grid;place-items:center;min-height:150px}
+.pic{font-size:96px;line-height:1;animation:float 2.4s ease-in-out infinite}
+.mathq{font-size:56px;font-weight:800;color:var(--ink)}
+.mathq .op{color:var(--red)}
+.qlabel{font-size:15px;color:var(--ink-2);font-weight:700;margin-top:6px;text-align:center}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+@media (max-width:520px){.opts{grid-template-columns:1fr}}
+.opt{cursor:pointer;font-family:inherit;font-size:24px;font-weight:800;padding:22px 14px;border:0;border-radius:18px;background:#f4f7ff;color:var(--ink);transition:transform .1s,background .15s}
+.opt:hover{background:#e6eeff;transform:translateY(-2px)}
+.opt:active{transform:scale(.97)}
+.opt.correct{background:var(--green);color:#fff;animation:pop .45s}
+.opt.wrong{background:var(--red);color:#fff;animation:shake .45s}
+.opt.show{outline:4px solid var(--green);outline-offset:2px;background:#e5f5e8;color:#156f40}
+.opt[disabled]{cursor:default}
+/* feedback */
+.fb{min-height:52px;text-align:center;font-size:20px;font-weight:800;margin-top:14px}
+.fb.good{color:var(--green);animation:pop .5s}
+.fb.bad{color:var(--red);animation:shake .5s}
+/* progress dots */
+.dots{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+.dot{width:18px;height:18px;border-radius:50%;background:#e8e0d0;font-size:11px;display:grid;place-items:center;color:transparent}
+.dot.done{background:var(--green);color:#fff}
+.dot.now{background:var(--yellow);color:#8a5b00;transform:scale(1.2)}
+/* next */
+.next{margin-top:14px;text-align:center}
+.next button{cursor:pointer;font-family:inherit;font-size:18px;font-weight:800;background:var(--blue);color:#fff;border:0;border-radius:999px;padding:14px 34px;box-shadow:0 6px 0 #1c4fd0;transition:transform .1s}
+.next button:active{transform:translateY(4px);box-shadow:0 2px 0 #1c4fd0}
+.next button.ghost{background:#fff;color:var(--blue);border:3px solid var(--line);box-shadow:none;margin-left:10px}
+/* result */
+.result{text-align:center}
+.trophy{font-size:74px;animation:pop .6s}
+.result h2{font-size:28px;margin:6px 0}
+.result .pct{font-size:16px;color:var(--ink-2);font-weight:700}
+.stars-row{font-size:40px;margin:14px 0;letter-spacing:8px}
+.stars-row .off{color:#d9d2c4}
+.msg{font-size:17px;font-weight:700;color:var(--ink-2)}
+.res-btns{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.res-btns button{cursor:pointer;font-family:inherit;font-size:16px;font-weight:800;border:0;border-radius:999px;padding:13px 26px}
+.res-btns .again{background:var(--green);color:#fff;box-shadow:0 5px 0 #1c8a52}
+.res-btns .again:active{transform:translateY(3px);box-shadow:0 2px 0 #1c8a52}
+.res-btns .switch{background:#fff;color:var(--blue);border:3px solid var(--line)}
+.res-btns .home{background:#fff;color:var(--ink-2);border:3px dashed var(--line);text-decoration:none;display:inline-block;font-weight:800}
+/* confetti */
+.confetti{position:fixed;width:11px;height:14px;top:-20px;z-index:50;pointer-events:none;border-radius:2px}
+/* audio note */
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important}}
+@keyframes pop{0%{transform:scale(.6)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-10px) rotate(3deg)}}
+@media print{.topbar,.next,.res-btns,.homes{display:none!important}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wrap top">
+    <span class="mascot" aria-hidden="true">🦉</span>
+    <span class="title">學習大冒險<small>Johnny Education Centre</small></span>
+    <span class="stars" id="starsTop" aria-label="星星">⭐ 0</span>
+  </div>
+  <div class="wrap homes"><a href="index.html">🏠 返回首頁</a></div>
+</div>
+
+<main class="wrap">
+  <!-- 選模式 -->
+  <section id="pick" class="screen">
+    <div class="hi">你好呀，小高手！👋</div>
+    <p class="hi-sub">揀一個遊戲開玩，答對越多，星星越多！</p>
+    <div class="pick">
+      <button class="modebtn m-english" data-mode="english">
+        <div class="big">📖</div><h2>英文生字</h2><p>睇圖認字：看到圖案，揀正確嘅英文字！</p><span class="go">▶</span>
+      </button>
+      <button class="modebtn m-math" data-mode="math">
+        <div class="big">🔢</div><h2>數學加減</h2><p>隨機加減法：用腦算出正確答案！</p><span class="go">▶</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 遊戲 -->
+  <section id="play" class="screen" hidden>
+    <div class="dots" id="dots" aria-hidden="true"></div>
+    <div class="card">
+      <div class="qhead">
+        <span class="tag" id="qtag">英文生字</span>
+        <span class="score" id="score">🏅 0 分</span>
+      </div>
+      <div class="prompt" id="prompt" aria-live="polite"></div>
+      <div class="qlabel" id="qlabel"></div>
+      <div class="opts" id="opts"></div>
+      <div class="fb" id="fb" aria-live="assertive"></div>
+      <div class="next" id="nextBox" hidden>
+        <button id="nextBtn">下一題 ▶</button>
+        <button id="againBtn" class="ghost">再玩一次 🔄</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 結算 -->
+  <section id="result" class="screen" hidden>
+    <div class="card result">
+      <div class="trophy" id="trophy">🏆</div>
+      <h2 id="resTitle">做得好！</h2>
+      <div class="stars-row" id="resStars"></div>
+      <div class="pct" id="resPct"></div>
+      <p class="msg" id="resMsg"></p>
+      <div class="res-btns">
+        <button class="again" id="resAgain">🔄 再玩一次</button>
+        <button class="switch" id="resSwitch">🔀 換另一個遊戲</button>
+        <a class="home" href="index.html">🏠 回主頁</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+/* ---------------- 資料 ---------------- */
+// 英文生字：emoji「圖片」＋正確英文字＋三個干擾項（皆為合理同類詞）
+const ENGLISH = [
+ {pic:"🍎", word:"apple",  options:["apple","cat","sun"]},
+ {pic:"🐱", word:"cat",    options:["dog","cat","bird"]},
+ {pic:"🚌", word:"bus",    options:["bus","car","bike"]},
+ {pic:"🏠", word:"house",  options:["school","house","tree"]},
+ {pic:"🐟", word:"fish",   options:["fish","bird","dog"]},
+ {pic:"🌞", word:"sun",    options:["moon","sun","star"]},
+ {pic:"🚗", word:"car",    options:["car","bus","train"]},
+ {pic:"🍌", word:"banana", options:["banana","apple","grape"]},
+ {pic:"📕", word:"book",   options:["pen","book","ruler"]},
+ {pic:"🐶", word:"dog",    options:["dog","cat","lion"]},
+ {pic:"✏️", word:"pencil", options:["pencil","eraser","crayon"]},
+ {pic:"🌧️", word:"rain",   options:["rain","snow","wind"]},
+ {pic:"🦋", word:"butterfly",options:["butterfly","bee","ant"]},
+ {pic:"⚽", word:"ball",   options:["ball","hat","shoe"]},
+ {pic:"🥛", word:"milk",   options:["juice","milk","water"]},
+ {pic:"🌸", word:"flower", options:["flower","grass","leaf"]}
+];
+const TOTAL = 8; // 每輪題目數
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+
+/* ---------------- 狀態 ---------------- */
+const S = { mode:null, seq:[], idx:0, score:0, correct:0, locked:false };
+const $ = id => document.getElementById(id);
+const show = id => { ["pick","play","result"].forEach(s=>$(s).hidden = s!==id); };
+
+function newRound(mode){
+  S.mode=mode; S.idx=0; S.score=0; S.correct=0;
+  if(mode==="english"){ S.seq = shuffle(ENGLISH).slice(0,TOTAL); }
+  else { S.seq = Array.from({length:TOTAL}, genMath); }
+  updateTop(); renderDots(); renderQ(); show("play");
+}
+function genMath(){
+  // 5–8 歲：加減法各約一半；減法確保答案非負，數字由易到難
+  const addFirst = Math.random()<0.5;
+  let a,b,ans,op;
+  const max = 10 + Math.floor(Math.random()*11); // 5–15
+  if(addFirst){ a=rnd(1,max); b=rnd(1,max); ans=a+b; op="+"; }
+  else { a=rnd(2,max); b=rnd(1,a-1>=1?a-1:1); ans=a-b; op="−"; }
+  // 生成三個選項（含正確 + 兩個接近的錯誤）
+  const wrong=new Set();
+  while(wrong.size<2){
+    let w = ans + pickFrom([-3,-2,-1,1,2,3,10]);
+    if(w!==ans && w>=0) wrong.add(w);
+  }
+  const options = shuffle([ans, ...wrong]);
+  return {a,b,op,ans,options};
+}
+function rnd(lo,hi){ return lo + Math.floor(Math.random()*(hi-lo+1)); }
+function pickFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function renderDots(){
+  $("dots").innerHTML = Array.from({length:TOTAL},(_,i)=>{
+    const cls = i<S.idx?"done":(i===S.idx?"now":"");
+    return `<span class="dot ${cls}">${i<S.idx?"✓":"★"}</span>`;
+  }).join("");
+}
+function renderQ(){
+  S.locked=false; $("nextBox").hidden=true; $("fb").textContent=""; $("fb").className="fb";
+  const item=S.seq[S.idx];
+  const tag=$("qtag");
+  if(S.mode==="english"){
+    tag.className="tag"; tag.textContent="第 "+(S.idx+1)+" / "+TOTAL+" 題";
+    $("prompt").innerHTML=`<div class="pic" aria-hidden="true">${item.pic}</div>`;
+    $("qlabel").textContent="呢幅圖係咩？揀正確嘅英文字：";
+  } else {
+    tag.className="tag math"; tag.textContent="第 "+(S.idx+1)+" / "+TOTAL+" 題";
+    $("prompt").innerHTML=`<div class="mathq">${item.a} <span class="op">${item.op}</span> ${item.b} = <span style="color:var(--blue)">?</span></div>`;
+    $("qlabel").textContent="算出正確答案：";
+  }
+  const correctWord = S.mode==="english"?item.word:item.ans;
+  const opts = $("opts"); opts.innerHTML="";
+  shuffle(item.options).forEach(o=>{
+    const b=document.createElement("button");
+    b.className="opt"; b.textContent = S.mode==="english"?o:String(o);
+    b.dataset.val = o;
+    b.addEventListener("click",()=>answer(b,o,correctWord));
+    opts.appendChild(b);
+  });
+}
+function answer(btn, val, correctWord){
+  if(S.locked) return; S.locked=true;
+  const isRight = String(val)===String(correctWord);
+  document.querySelectorAll(".opt").forEach(b=>b.disabled=true);
+  const fb=$("fb");
+  if(isRight){
+    btn.classList.add("correct"); S.correct++; S.score+=10;
+    fb.textContent = pickFrom(["答對咗！你真棒！🎉","好嘢！繼續！💪","太厲害啦！⭐","完全正確！👏"]);
+    fb.className="fb good"; confetti();
+    speak("Good job!");
+  } else {
+    btn.classList.add("wrong");
+    document.querySelectorAll(".opt").forEach(b=>{ if(String(b.dataset.val)===String(correctWord)) b.classList.add("show"); });
+    fb.textContent = S.mode==="english"
+      ? `唔啱～正確係「${correctWord}」，再諗吓！`
+      : `唔啱～正確答案係 ${correctWord}，加油！`;
+    fb.className="fb bad";
+  }
+  updateTop();
+  if(S.idx+1>=TOTAL){ $("nextBox").hidden=false; $("nextBtn").textContent="睇成績 🏆"; }
+  else { $("nextBox").hidden=false; }
+  renderDots();
+}
+function next(){
+  S.idx++;
+  if(S.idx>=TOTAL){ showResult(); return; }
+  renderDots(); renderQ();
+}
+function showResult(){
+  const total=TOTAL, ok=S.correct, pct=Math.round(ok/total*100);
+  const star = ok===total?5:ok>=TOTAL-1?4:ok>=TOTAL-2?3:ok>=Math.ceil(total/2)?2:1;
+  $("resPct").textContent=`答對 ${ok} / ${TOTAL} 題（${pct}%）`;
+  $("resTitle").textContent = pct===100?"滿分！超級勁！":pct>=70?"好叻呀！":"加油，再試一次！";
+  $("trophy").textContent = pct===100?"🏆":pct>=70?"🥇":"💪";
+  $("resMsg").textContent = pct===100?"你係學習小天才！":pct>=70?"差少少就滿分啦，真係好棒！":"唔使郁，多多練習就會勁啲！";
+  $("resStars").innerHTML = Array.from({length:5},(_,i)=>`<span class="${i<star?"on":"off"}">${i<star?"⭐":"☆"}</span>`).join("");
+  if(pct>=70){ confetti(); }
+  speak(pct===100?"Wonderful! Perfect!":pct>=70?"Well done!":"Keep going!");
+  updateTop(); show("result");
+}
+function updateTop(){ $("starsTop").textContent="⭐ "+S.score; }
+
+/* confetti */
+function confetti(){
+  const cols=["#ff5a5f","#ffcf33","#2fbf71","#2f6bff","#ff7eb6","#9b6dff"];
+  for(let i=0;i<26;i++){
+    const c=document.createElement("span"); c.className="confetti";
+    c.style.background=cols[i%cols.length];
+    c.style.left=Math.random()*100+"vw";
+    c.style.transform="rotate("+(Math.random()*360)+"deg)";
+    document.body.appendChild(c);
+    const dur=900+Math.random()*700;
+    c.animate([
+      {transform:`translateY(-20px) rotate(0deg)`,opacity:1},
+      {transform:`translateY(100vh) rotate(${540+Math.random()*360}deg)`,opacity:1}
+    ],{duration:dur,easing:"cubic-bezier(.2,.7,.4,1)"});
+    setTimeout(()=>c.remove(),dur);
+  }
+}
+/* 簡易朗讀（支援時） */
+function speak(txt){ if("speechSynthesis"in window){ try{const u=new SpeechSynthesisUtterance(txt);u.lang="en-US";u.rate=.9;u.pitch=1.2;u.volume=.8;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){} } }
+
+/* ---------------- 事件 ---------------- */
+document.querySelectorAll(".modebtn").forEach(b=>b.addEventListener("click",()=>newRound(b.dataset.mode)));
+$("nextBtn").addEventListener("click",next);
+$("againBtn").addEventListener("click",()=>newRound(S.mode));
+$("resAgain").addEventListener("click",()=>newRound(S.mode));
+$("resSwitch").addEventListener("click",()=>show("pick"));
+document.addEventListener("keydown",e=>{
+  if(!$("play").hidden && (e.key==="Enter"||e.key===" ") && $("nextBox").hidden===false){ e.preventDefault(); next(); }
+});
+</script>
+</body>
+</html>
