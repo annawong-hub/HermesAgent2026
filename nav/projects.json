@@ -53,5 +53,20 @@
     "status": "live",
     "link": "https://annawong-hub.github.io/HermesAgent2026/nav/",
     "repo": "https://github.com/annawong-hub/HermesAgent2026/tree/main/nav"
+  },
+  {
+    "id": "johnny-edu",
+    "name": "Johnny Education Centre 尊尼教育中心",
+    "desc": "5–9 歲兒童教育中心主頁：公司簡介、教學理念、四門精選課程（AI／Python／全科／繪畫）、師資介紹與聯絡方式，響應式設計。",
+    "stack": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "GitHub Pages"
+    ],
+    "category": "網站",
+    "status": "live",
+    "link": "https://annawong-hub.github.io/HermesAgent2026/johnnyedu/",
+    "repo": "https://github.com/annawong-hub/HermesAgent2026/tree/main/johnnyedu"
   }
 ]
