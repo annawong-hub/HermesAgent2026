@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nav Hub｜Web 專案導覽</title>
+<meta name="description" content="Anna 的 web app 專案導覽：以卡片列出所有專案，支援搜尋與分類篩選。">
+<style>
+:root{
+  --ink:#161a23; --ink-2:#4a5264; --muted:#79809a; --bg:#f5f6fa; --card:#fff;
+  --line:#e3e6f0; --accent:#2f6bff; --accent-soft:#e8eefe; --green:#0e9f6e; --green-soft:#def7ec;
+  --amber:#b45309; --amber-soft:#fef3e2; --shadow:0 1px 3px rgba(16,24,40,.07),0 6px 18px -8px rgba(16,24,40,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 18px 64px}
+header{margin-bottom:22px}
+h1{font-size:clamp(22px,4vw,30px);letter-spacing:.5px}
+.sub{color:var(--muted);font-size:14px;margin-top:4px}
+.count-line{font-size:13px;color:var(--muted);margin:14px 0 8px}
+.controls{display:grid;gap:10px;grid-template-columns:1fr;position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 0;margin-bottom:16px}
+.search{position:relative}
+.search input{width:100%;font:inherit;padding:11px 14px 11px 38px;border:1px solid var(--line);border-radius:10px;background:#fff;box-shadow:var(--shadow)}
+.search input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.search::before{content:"🔍";position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.55;pointer-events:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:13px;cursor:pointer;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink-2);transition:all .15s}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #9db9ff;outline-offset:1px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:10px;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(16,24,40,.08),0 14px 30px -10px rgba(16,24,40,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.card h2{font-size:17px;font-weight:700}
+.card h2 a{color:var(--ink);text-decoration:none}
+.card h2 a:hover{color:var(--accent)}
+.badge{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.badge.live{background:var(--green-soft);color:var(--green)}
+.badge.dev{background:var(--amber-soft);color:var(--amber)}
+.desc{font-size:13.5px;color:var(--ink-2);flex:1}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:11.5px;background:var(--accent-soft);color:#1a3fa8;padding:2px 9px;border-radius:6px;font-weight:600}
+.cat{font-size:11.5px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.links{display:flex;gap:8px;margin-top:2px}
+.links a{font-size:13px;font-weight:700;padding:7px 13px;border-radius:8px;text-decoration:none}
+.links a.primary{background:var(--accent);color:#fff}
+.links a.primary:hover{background:#1d4fd6}
+.links a.ghost{border:1px solid var(--line);color:var(--ink-2)}
+.links a.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.empty{text-align:center;color:var(--muted);padding:48px 0;font-size:15px}
+footer{margin-top:36px;font-size:12px;color:var(--muted);text-align:center}
+footer code{background:#eef0f7;padding:2px 6px;border-radius:5px}
+@media print{
+  .controls{position:static}
+  .card{break-inside:avoid;box-shadow:none}
+}
+@media (max-width:520px){
+  .card{padding:14px}
+  .links{flex-direction:column;align-items:stretch}
+  .links a{text-align:center}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Nav Hub</h1>
+    <p class="sub">所有 web app 專案導覽｜資料來源：projects.json</p>
+    <div class="count-line" id="count" aria-live="polite"></div>
+  </header>
+
+  <div class="controls" role="search">
+    <div class="search">
+      <input id="q" type="search" placeholder="搜尋專案名稱、簡介、技術…" aria-label="搜尋專案">
+    </div>
+    <div class="chips" id="catChips" role="group" aria-label="依分類篩選"></div>
+    <div class="chips" id="stChips" role="group" aria-label="依狀態篩選"></div>
+  </div>
+
+  <main class="cards" id="cards" aria-live="polite"></main>
+  <div class="empty" id="empty" hidden>找不到符合條件的專案，請調整搜尋或篩選條件。</div>
+
+  <footer>新增專案：編輯本倉庫之 <code>projects.json</code> 後推送即可（推送到 main 會自動部署）。</footer>
+</div>
+
+<script>
+"use strict";
+const state = { q:"", cat:"all", status:"all" };
+const STATUS = { live:{label:"已上線",cls:"live"}, dev:{label:"開發中",cls:"dev"} };
+let PROJECTS = [];
+
+function esc(s){ return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function cardEl(p){
+  const st = STATUS[p.status] || {label:"未知狀態", cls:"dev"};
+  const div = document.createElement("article");
+  div.className = "card";
+  div.innerHTML = `
+    <div class="card-top">
+      <h2>${p.link ? `<a href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">${esc(p.name)}</a>` : esc(p.name)}</h2>
+      <span class="badge ${st.cls}">${st.label}</span>
+    </div>
+    <span class="cat">分類：${esc(p.category||"未分類")}</span>
+    <p class="desc">${esc(p.desc)}</p>
+    <div class="tags">${(p.stack||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join("") || '<span class="tag" style="opacity:.55">待補充技術</span>'}</div>
+    <div class="links">
+      ${p.link ? `<a class="primary" href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">開啟專案</a>` : ""}
+      ${p.repo ? `<a class="ghost" href="${esc(p.repo)}" target="_blank" rel="noopener noreferrer">GitHub 倉庫</a>` : ""}
+    </div>`;
+  return div;
+}
+
+function render(){
+  const q = state.q.trim().toLowerCase();
+  const list = PROJECTS.filter(p=>{
+    if(state.cat!=="all" && (p.category||"未分類")!==state.cat) return false;
+    if(state.status!=="all" && p.status!==state.status) return false;
+    if(q){
+      const hay = [p.name,p.desc,p.category,...(p.stack||[])].join(" ").toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  const box = document.getElementById("cards");
+  box.innerHTML = "";
+  list.forEach(p=>box.appendChild(cardEl(p)));
+  document.getElementById("empty").hidden = list.length>0;
+  const total = PROJECTS.length;
+  const live = PROJECTS.filter(p=>p.status==="live").length;
+  document.getElementById("count").textContent =
+    (q||state.cat!=="all"||state.status!=="all")
+      ? `顯示 ${list.length}／${total} 個專案`
+      : `共 ${total} 個專案（已上線 ${live}、開發中 ${total-live}）`;
+}
+
+function makeChips(elId, items, key, allLabel){
+  const el = document.getElementById(elId);
+  el.innerHTML = "";
+  [{v:"all",label:allLabel}, ...items].forEach(it=>{
+    const b = document.createElement("button");
+    b.type="button"; b.className="chip"; b.textContent=it.label;
+    b.setAttribute("aria-pressed", String(it.v==="all"));
+    b.addEventListener("click",()=>{
+      state[key]=it.v;
+      el.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed","false"));
+      b.setAttribute("aria-pressed","true");
+      render();
+    });
+    el.appendChild(b);
+  });
+}
+
+document.getElementById("q").addEventListener("input", e=>{ state.q=e.target.value; render(); });
+
+fetch("projects.json",{cache:"no-store"})
+  .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+  .then(list=>{
+    PROJECTS = Array.isArray(list) ? list : [];
+    if(!PROJECTS.length) throw new Error("empty");
+    const cats = [...new Set(PROJECTS.map(p=>p.category||"未分類"))].sort((a,b)=>a.localeCompare(b,"zh-Hant"));
+    makeChips("catChips", cats.map(c=>({v:c,label:c})), "cat", "全部分類");
+    makeChips("stChips", Object.entries(STATUS).map(([v,l])=>({v,label:l.label})), "status", "全部狀態");
+    render();
+  })
+  .catch(err=>{
+    document.getElementById("cards").innerHTML =
+      `<p class="empty">無法載入 projects.json（${esc(err.message)}），請確認檔案存在且格式正確。</p>`;
+  });
+</script>
+</body>
+</html>
